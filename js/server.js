@@ -2,16 +2,19 @@
 
 // Load Environment Variables from the .env file
 require('dotenv').config();
+// Same as - const dotenv = require('dotenv'
+// dotenv.config();
 
 // Application Dependencies
 const express = require('express');
+const cors = require('cors');
 
 // Application Setup
 const PORT = process.env.PORT;
 const app = express();
 
 app.get('/', (request, response) => {
-  response.send('Home Page!');
+  response.send('Home Page');
 });
 
 // Make sure the server is listening for requests
@@ -46,7 +49,7 @@ function locationHandler(request, response) {
   response.send(location);
 }
 
-// Has to happen after everything else
+// Has maryto happen after everything else
 app.use(notFoundHandler);
 // Has to happen after the error might have occurred
 app.use(errorHandler); // Error Middleware
