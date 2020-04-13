@@ -49,7 +49,7 @@ function locationHandler(request, response) {
   response.send(location);
 }
 
-// Has maryto happen after everything else
+// Has to happen after everything else
 app.use(notFoundHandler);
 // Has to happen after the error might have occurred
 app.use(errorHandler); // Error Middleware
