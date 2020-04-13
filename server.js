@@ -1,6 +1,6 @@
 'use strict';
 
-// Load Environment Variables from the .env file
+// Load Environment Variables from the .env file.
 require('dotenv').config();
 // Same as - const dotenv = require('dotenv'
 // dotenv.config();
