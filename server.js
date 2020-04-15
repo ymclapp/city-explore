@@ -2,8 +2,6 @@
 
 // Load Environment Variables from the .env file.
 require('dotenv').config();
-// Same as - const dotenv = require('dotenv'
-// dotenv.config();
 
 // Application Dependencies
 const express = require('express');
@@ -13,29 +11,10 @@ const cors = require('cors');
 const PORT = process.env.PORT;
 const app = express();
 
-app.get('/', (request, response) => {
-  response.send('Home Page');
-});
-
-// Make sure the server is listening for requests
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
-
 app.use(cors()); // Middleware
 
 app.get('/', (request, response) => {
   response.send('City Explorer Goes Here');
-});
-
-app.get('/bad', (request, response) => {
-  throw new Error('oops');
-});
-
-app.get('/paypal', (request, response) => {
-  response.send(process.env.PAYPAL_URL);
-});
-
-app.get('/weather', (request, response) => {
-  response.send('Weather.');
 });
 
 // Add /location route
@@ -54,8 +33,6 @@ app.use(notFoundHandler);
 // Has to happen after the error might have occurred
 app.use(errorHandler); // Error Middleware
 
-// Make sure the server is listening for requests
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 
 // Helper Functions
 
@@ -79,5 +56,8 @@ function Location(city, geoData) {
   this.latitude = parseFloat(geoData[0].lat);
   this.longitude = parseFloat(geoData[0].lon);
 }
-© 2020 GitHub, Inc.
+
+// Make sure the server is listening for requests
+app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
+
 
