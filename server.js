@@ -13,12 +13,16 @@ const app = express();
 
 app.use(cors()); // Middleware
 
-app.get('/', (request, response) => {
-  response.send('City Explorer Goes Here');
-});
+// app.get('/', (request, response) => {
+//   response.send('City Explorer Goes Here');
+// });
+
+app.use(express.static('./public'));
 
 // Add /location route
 app.get('/location', locationHandler);
+
+app.get('/weather', weatherHandler);
 
 // Route Handler
 function locationHandler(request, response) {
@@ -26,6 +30,13 @@ function locationHandler(request, response) {
   const city = request.query.city;
   const location = new Location(city, geoData);
   response.send(location);
+}
+
+function weatherHandler(request, response) {
+  const { latitude, longitude } = request.query;
+  weather(latitude, longitude)
+    .then(summaries => sendJson(summaries, response))
+    .catch((error) => errorHandler(error, request, response));
 }
 
 // Has to happen after everything else
