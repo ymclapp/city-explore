@@ -32,12 +32,22 @@ function locationHandler(request, response) {
   response.send(location);
 }
 
-function weatherHandler(request, response) {
+function weatherHandler(request,response) {
+  const weatherData = require('./data/darksky.json');
   const { latitude, longitude } = request.query;
-  weather(latitude, longitude)
-    .then(summaries => sendJson(summaries, response))
-    .catch((error) => errorHandler(error, request, response));
+  const weather = [];
+  for (let i = 0; i < weatherData.daily.data.length; i++){
+    weather.push(new Weather(weatherData.daily.data[i]));
+  }
+  response.send(weather);
 }
+
+// function weatherHandler(request, response) {
+//   const { latitude, longitude } = request.query;
+//   weather(latitude, longitude)
+//     .then(summaries => sendJson(summaries, response))
+//     .catch((error) => errorHandler(error, request, response));
+// }
 
 // Has to happen after everything else
 app.use(notFoundHandler);
@@ -48,17 +58,12 @@ app.use(errorHandler); // Error Middleware
 // Helper Functions
 
 function errorHandler(error, request, response, next) {
-  console.log(error);
-  response.status(500).json({
-    error: true,
-    message: error.message,
-  });
+  response.status(500).send('I think something went wrong.');
+
 }
 
 function notFoundHandler(request, response) {
-  response.status(404).json({
-    notFound: true,
-  });
+  response.status(404).send('I could not find what you were asking for.')
 }
 
 function Location(city, geoData) {
@@ -66,6 +71,12 @@ function Location(city, geoData) {
   this.formatted_query = geoData[0].display_name; // "Cedar Rapids, Iowa"
   this.latitude = parseFloat(geoData[0].lat);
   this.longitude = parseFloat(geoData[0].lon);
+}
+
+function Weather(weatherData) {
+  this.forecast = weatherData.summary;
+  this.time = new Date(weatherData.time).toDateString();
+
 }
 
 // Make sure the server is listening for requests
