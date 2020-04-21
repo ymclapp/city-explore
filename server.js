@@ -35,12 +35,19 @@ function locationHandler(request, response) {
 function weatherHandler(request,response) {
   const weatherData = require('./data/darksky.json');
   const { latitude, longitude } = request.query;
-  const weather = [];
-  for (let i = 0; i < weatherData.daily.data.length; i++){
-    weather.push(new Weather(weatherData.daily.data[i]));
-  }
+  // const weather = [];
+  // for (let i = 0; i < weatherData.daily.data.length; i++){
+  //   weather.push(new Weather(weatherData.daily.data[i]));
+  // }
+const weather = weatherData.daily.data.map((dailyWeather)=>{
+  return new Weather(dailyWeather);
+});
+
   response.send(weather);
 }
+
+
+
 
 // function weatherHandler(request, response) {
 //   const { latitude, longitude } = request.query;
