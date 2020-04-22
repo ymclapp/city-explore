@@ -40,13 +40,29 @@ function locationHandler(request, response) {
       let geoData = locIQresponse.body;
       const location = new Location(city, geoData);
       response.send(location);
+    }).catch((error)=>{
+      throw `Something went wrong ${error}`;
     });
   
 }
 
 function weatherHandler(request,response) {
-  const weatherData = require('./data/darksky.json');
-  const { latitude, longitude } = request.query;
+  // const weatherData = require('./data/darksky.json');
+  const city = request.query.city;
+  const url = 'https://api.weatherbit.io/v2.0/current';
+  superagent.get(url).query({
+    key:  process.env.WEATHER_API_KEY,
+    city: city
+    callback: "json-p"
+  }).then((weathResponse)=>{
+    let weatherData = weathresponse.body;
+    const weather = new Weather(city, geoData);
+    response.send(weather);
+  }).catch((error)=>{
+    throw `Something went wrong ${error}`;
+  });
+}
+  // const { latitude, longitude } = request.query;
   // const weather = [];
   // for (let i = 0; i < weatherData.daily.data.length; i++){
   //   weather.push(new Weather(weatherData.daily.data[i]));
