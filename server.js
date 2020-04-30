@@ -27,62 +27,39 @@ app.get('/weather', weatherHandler);
 
 // Route Handler
 function locationHandler(request, response) {
-  // const geoData = require('./data/geo.json');
   const city = request.query.city;
-  // const location = new Location(city, geoData);
-  // response.send(location);
   const url = 'https://us1.locationiq.com/v1/search.php';
   superagent.get(url).query({
     key: process.env.GEOCODE_API_KEY,
     q: city,
-    format: "json"
-    }).then((locIQresponse)=>{
-      let geoData = locIQresponse.body;
-      const location = new Location(city, geoData);
-      response.send(location);
-    }).catch((error)=>{
-      throw `Something went wrong ${error}`;
-    });
-  
+    format: 'json'
+  }).then((locIQresponse)=>{
+    let geoData = locIQresponse.body;
+    const location = new Location(city, geoData);
+    response.send(location);
+  }).catch((error)=>{
+    errorHandler(error,request,response);
+  });
 }
 
 function weatherHandler(request,response) {
-  // const weatherData = require('./data/darksky.json');
-  const city = request.query.city;
+  let lat = request.query.latitude;
+  let lon =  request.query.longitude;
   const url = 'https://api.weatherbit.io/v2.0/current';
   superagent.get(url).query({
     key:  process.env.WEATHER_API_KEY,
-    city: city
-    callback: "json-p"
+    lon: lon,
+    lat: lat
   }).then((weathResponse)=>{
-    let weatherData = weathresponse.body;
-    const weather = new Weather(city, geoData);
-    response.send(weather);
+    let weatherData = weathResponse.body.data;
+    let dailyResults = weatherData.map(dailyWeather=>{
+      return new Weather(dailyWeather);
+    });
+    response.send(dailyResults);
   }).catch((error)=>{
-    throw `Something went wrong ${error}`;
+    errorHandler(error,request,response);
   });
 }
-  // const { latitude, longitude } = request.query;
-  // const weather = [];
-  // for (let i = 0; i < weatherData.daily.data.length; i++){
-  //   weather.push(new Weather(weatherData.daily.data[i]));
-  // }
-const weather = weatherData.daily.data.map((dailyWeather)=>{
-  return new Weather(dailyWeather);
-});
-
-  response.send(weather);
-}
-
-
-
-
-// function weatherHandler(request, response) {
-//   const { latitude, longitude } = request.query;
-//   weather(latitude, longitude)
-//     .then(summaries => sendJson(summaries, response))
-//     .catch((error) => errorHandler(error, request, response));
-// }
 
 // Has to happen after everything else
 app.use(notFoundHandler);
@@ -93,7 +70,11 @@ app.use(errorHandler); // Error Middleware
 // Helper Functions
 
 function errorHandler(error, request, response, next) {
-  response.status(500).send('I think something went wrong.');
+  console.log(error);
+  response.status(500).json({
+    error: true,
+    message: error.message
+  });
 
 }
 
@@ -109,8 +90,8 @@ function Location(city, geoData) {
 }
 
 function Weather(weatherData) {
-  this.forecast = weatherData.summary;
-  this.time = new Date(weatherData.time).toDateString();
+  this.forecast = weatherData.weather.description;
+  this.time = weatherData.ob_time;
 
 }
 
