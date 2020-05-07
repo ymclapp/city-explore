@@ -46,9 +46,9 @@ function locationHandler(request, response) {
 }
 
 function weatherHandler(request,response) {
-  let lat = request.query.latitude;
-  let lon =  request.query.longitude;
-  const url = 'https://api.weatherbit.io/v2.0/current';
+  const lat = request.query.latitude;
+  const lon =  request.query.longitude;
+  const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
   superagent.get(url).query({
     key:  process.env.WEATHER_API_KEY,
     lon: lon,
@@ -115,7 +115,7 @@ function Location(city, geoData) {
 
 function Weather(weatherData) {
   this.forecast = weatherData.weather.description;
-  this.time = weatherData.ob_time;
+  this.time = weatherData.valid_date;
 
 }
 
