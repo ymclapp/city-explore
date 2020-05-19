@@ -7,6 +7,11 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
+const pg = require('pg');
+
+//Database Connection Setup
+const client = new pg.Client(process.env.DATABASE_URL);
+client.on('error', err => {throw err;});
 
 // Application Setup
 const PORT = process.env.PORT;
@@ -26,6 +31,20 @@ app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
 
 app.get('/trails', trailsHandler);
+
+app.get('/locations', (request, response) => {
+  const SQL = 'SELECT * FROM locations';
+  client.query(SQL)
+    .then(results => {
+      console.log(results);
+      response.json(results.rows);
+    })
+    .catch(err => {
+      console.log(err);
+      errorHandler(err, request, response)
+    });
+})
+
 
 // Route Handler
 function locationHandler(request, response) {
@@ -89,6 +108,18 @@ function trailsHandler(request,response) {
 app.use(notFoundHandler);
 // Has to happen after the error might have occurred
 app.use(errorHandler); // Error Middleware
+
+
+//Make sure the server is listening for requests
+client.connect()
+  .then (() => {
+    console.log('PG Connected!');
+    
+    app.listen(PORT, () => console.log('App is listening on ${PORT}'));
+  })
+  .catch(err => {
+    throw 'PG error!:{err.message}'
+  });
 
 
 // Helper Functions
