@@ -114,11 +114,10 @@ app.use(errorHandler); // Error Middleware
 client.connect()
   .then (() => {
     console.log('PG Connected!');
-    
-    app.listen(PORT, () => console.log('App is listening on ${PORT}'));
+    app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
   })
   .catch(err => {
-    throw 'PG error!:{err.message}'
+    throw `PG error!: ${err.message}`;
   });
 
 
@@ -163,7 +162,5 @@ function Trails(trailsData) {
   this.condition_time = trailsData.conditionTime;
 }
 
-// Make sure the server is listening for requests
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 
 
