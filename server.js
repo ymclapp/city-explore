@@ -7,11 +7,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
-const pg = require('pg');
 
-//Database Connection Setup
-const client = new pg.Client(process.env.DATABASE_URL);
-client.on('error', err => {throw err;});
 
 // Application Setup
 const PORT = process.env.PORT;
@@ -25,44 +21,26 @@ app.use(cors()); // Middleware
 
 app.use(express.static('./public'));
 
+
+
+
+//require modules
+const client = require('./util/db');
+const locationHandler = require('./modules/locations');
+const errorHandler = require('./modules/errors');
+const notFoundHandler = require('./modules/errors');
+
+
 // Add /location route
 app.get('/location', locationHandler);
-
 app.get('/weather', weatherHandler);
-
 app.get('/trails', trailsHandler);
+// app.get('/yelp',yelpHandler);
+// app.get('/movies', moviesHelper);
 
-app.get('/locations', (request, response) => {
-  const SQL = 'SELECT * FROM locations';
-  client.query(SQL)
-    .then(results => {
-      console.log(results);
-      response.json(results.rows);
-    })
-    .catch(err => {
-      console.log(err);
-      errorHandler(err, request, response)
-    });
-})
 
 
 // Route Handler
-function locationHandler(request, response) {
-  const city = request.query.city;
-  const url = 'https://us1.locationiq.com/v1/search.php';
-  superagent.get(url).query({
-    key: process.env.GEOCODE_API_KEY,
-    q: city,
-    format: 'json'
-  }).then((locIQresponse)=>{
-    let geoData = locIQresponse.body;
-    const location = new Location(city, geoData);
-    console.log(location);
-    response.send(location);
-  }).catch((error)=>{
-    errorHandler(error,request,response);
-  });
-}
 
 function weatherHandler(request,response) {
   const lat = request.query.latitude;
@@ -103,45 +81,39 @@ function trailsHandler(request,response) {
   });
 }
 
+// function yelpHandler(request,response) {
+//   console.log(request.query);
+//   let lat = parseFloat(request.query.latitude);
+//   let lon = parseFloat(request.query.longitude);
+//   const url = 'https://api.yelp.com/v3/businesses/search';
+//   superagent.get(url).query({
+//     key: process.env.YELP_API_KEY,
+//     lon: lon,
+//     lat: lat
+//   }).then((yelpSearchResponse)=>{
+//     let yelpData = yelpSearchResponse.body;
+//     let yelpArray = yelpData.trails.map(trail=>{
+//       return new Yelp(trail);
+//     });
+//     response.send(yelpArray);
+//   }).catch((error)=>{
+//     errorHandler(error,request,response);
+//   });
+// }
+
+// function moviesHelper(request, response) {
+//   console.log(request.query);
+//   let
+//   let
+//   const url =
+// }
+
 
 // Has to happen after everything else
 app.use(notFoundHandler);
 // Has to happen after the error might have occurred
 app.use(errorHandler); // Error Middleware
 
-
-//Make sure the server is listening for requests
-client.connect()
-  .then (() => {
-    console.log('PG Connected!');
-    app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
-  })
-  .catch(err => {
-    throw `PG error!: ${err.message}`;
-  });
-
-
-// Helper Functions
-
-function errorHandler(error, request, response, next) {
-  console.log(error);
-  response.status(500).json({
-    error: true,
-    message: error.message
-  });
-
-}
-
-function notFoundHandler(request, response) {
-  response.status(404).send('I could not find what you were asking for.')
-}
-
-function Location(city, geoData) {
-  this.search_query = city; // "cedar rapids"
-  this.formatted_query = geoData[0].display_name; // "Cedar Rapids, Iowa"
-  this.latitude = parseFloat(geoData[0].lat);
-  this.longitude = parseFloat(geoData[0].lon);
-}
 
 function Weather(weatherData) {
   this.forecast = weatherData.weather.description;
@@ -162,5 +134,13 @@ function Trails(trailsData) {
   this.condition_time = trailsData.conditionTime;
 }
 
-
+//Make sure the server is listening for requests
+client.connect()
+  .then (() => {
+    console.log('PG Connected!');
+    app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
+  })
+  .catch(err => {
+    throw `PG error!: ${err.message}`;
+  });
 
