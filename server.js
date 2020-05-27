@@ -6,7 +6,7 @@ require('dotenv').config();
 // Application Dependencies
 const express = require('express');
 const cors = require('cors');
-const superagent = require('superagent');
+// const superagent = require('superagent');
 
 
 // Application Setup
@@ -21,12 +21,13 @@ app.use(cors()); // Middleware
 
 app.use(express.static('./public'));
 
-
-
-
 //require modules
 const client = require('./util/db');
 const locationHandler = require('./modules/locations');
+const weatherHandler = require('./modules/weather');
+const trailsHandler = require('./modules/trails');
+// const yelpHandler = require('./modules/yelp');
+// const moviesHandler = require('./modules/movies');
 const errorHandler = require('./modules/errors');
 const notFoundHandler = require('./modules/errors');
 
@@ -38,101 +39,10 @@ app.get('/trails', trailsHandler);
 // app.get('/yelp',yelpHandler);
 // app.get('/movies', moviesHelper);
 
-
-
-// Route Handler
-
-function weatherHandler(request,response) {
-  const lat = request.query.latitude;
-  const lon =  request.query.longitude;
-  const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
-  superagent.get(url).query({
-    key:  process.env.WEATHER_API_KEY,
-    lon: lon,
-    lat: lat
-  }).then((weathResponse)=>{
-    let weatherData = weathResponse.body.data;
-    let dailyResults = weatherData.map(dailyWeather=>{
-      return new Weather(dailyWeather);
-    });
-    response.send(dailyResults);
-  }).catch((error)=>{
-    errorHandler(error,request,response);
-  });
-}
-
-function trailsHandler(request,response) {
-  console.log(request.query);
-  let lat = parseFloat(request.query.latitude);
-  let lon = parseFloat(request.query.longitude);
-  const url = 'https://www.hikingproject.com/data/get-trails';
-  superagent.get(url).query({
-    key: process.env.TRAILS_API_KEY,
-    lon: lon,
-    lat: lat
-  }).then((hikersResponse)=>{
-    let trailsData = hikersResponse.body;
-    let trailsArray = trailsData.trails.map(trail=>{
-      return new Trails(trail);
-    });
-    response.send(trailsArray);
-  }).catch((error)=>{
-    errorHandler(error,request,response);
-  });
-}
-
-// function yelpHandler(request,response) {
-//   console.log(request.query);
-//   let lat = parseFloat(request.query.latitude);
-//   let lon = parseFloat(request.query.longitude);
-//   const url = 'https://api.yelp.com/v3/businesses/search';
-//   superagent.get(url).query({
-//     key: process.env.YELP_API_KEY,
-//     lon: lon,
-//     lat: lat
-//   }).then((yelpSearchResponse)=>{
-//     let yelpData = yelpSearchResponse.body;
-//     let yelpArray = yelpData.trails.map(trail=>{
-//       return new Yelp(trail);
-//     });
-//     response.send(yelpArray);
-//   }).catch((error)=>{
-//     errorHandler(error,request,response);
-//   });
-// }
-
-// function moviesHelper(request, response) {
-//   console.log(request.query);
-//   let
-//   let
-//   const url =
-// }
-
-
 // Has to happen after everything else
 app.use(notFoundHandler);
 // Has to happen after the error might have occurred
 app.use(errorHandler); // Error Middleware
-
-
-function Weather(weatherData) {
-  this.forecast = weatherData.weather.description;
-  this.time = new Date (weatherData.valid_date).toDateString();
-
-}
-
-function Trails(trailsData) {
-  this.name = trailsData.name;
-  this.location = trailsData.location;
-  this.length = trailsData.length;
-  this.stars = trailsData.stars;
-  this.star_votes = trailsData.starVotes;
-  this.summary = trailsData.summary;
-  this.trail_url = trailsData.trailURL;
-  this.condition_details = trailsData.conditionStatus;
-  this.condition_date = new Date (trailsData.conditionDate).toDateString;
-  this.condition_time = trailsData.conditionTime;
-}
 
 //Make sure the server is listening for requests
 client.connect()
