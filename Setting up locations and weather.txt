@@ -1,0 +1,61 @@
+app.get('/location, locationHandler);
+
+function locationHandler(request, response);
+	//const geoData = require(______________________);	<--was from geo.json file//
+	const city = request.query.city;			<--pulls out the city they entered in search box
+	const url = 'https://us1.locationiq.com/v1/search.php';	<--my API lives here
+	superagent.get(url);					<--superagent go get me this url that contains the below query string
+		.query({
+			key: process.env.GEO_KEY,			<--tell it to get from dotenv file so it stays secret.  key is required by query parameters
+			q: city,					<--q is required by query parameters and the city is what the user typed in
+			format: 'json'					<--do not put comma after last one.
+		})
+		.then(locationResponse => {				<--a promise: go get the above in the .query and then it will bring back all data
+			let geoData = locationResponse.body;		<--tells it to only bring back the information of the body, not ALL information.
+			console.log(geoData);
+			
+			const location = new Location ('city', geoData);  <--has to happen within the .then area or it will start before the query is returned.  geoData is passed into the Location constructor
+			response.send(location);		
+		})
+		.catch(err => {
+			console.log(err.response);
+			errorHandler(err, request, response);	<--tells whether there is an error and what it is in reference to
+		});
+
+
+function Location(city, geoData) {
+    this.search_query = city;  				<--how person typed it and city is what the api needs for their word
+    this.formatted_query = geoData[0].display_name;	<--more formatted
+    this.latitude = parseFloat(geoData[0].lat);
+    this.longitude = parseFloat(geoData[0].lon);
+}
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+Weather Route
+app.get('/weather, weatherHandler);
+
+function weatherHandler(request, response) {
+	const weatherData = require(_________________________);	<--was from darksky.json file
+	const latitude = request.query.latitude;	<--pulls the latitude and longitude out of the original query
+	const longitude = request.query.longitude;
+	console.log('/weather',{latitude, longitude})';	<--displays console log of /weather and the latitude and longitude
+	
+	const weatherResults = [];			<--replace with superagent verbiage
+	weatherData.daily.data.forEach(dailyWeather => {
+		weatherResults.push(new Weather(dailyWeather));
+	});
+	response.send(weatherResults);
+}
+
+function Weather(weatherData) {
+	this.forecast = weatherData.summary; <---this is the verbiage/word that the API uses -- left side our word from front end (HTML)/right side API word 
+	this.time = new Date(weatherData.time * 1000);
+}
+
+Notes:
+*  Everything (except location) will return an array
+*  Query string is everything after the question mark in the url - Ex.  localhost:3000/location?city=cedar rapids
+	- With a request.query._______ you can look at the query string  Ex. request.query.city will pull in the city they entered
+*  parseFloat - forces data to numbers
+	- Add parenthesis before geoData and after .lat/before semicolon above in this.latitude, etc.

@@ -17,8 +17,8 @@ function weatherHandler(request,response) {
       return new Weather(dailyWeather);
     });
     response.send(dailyResults);
-  }).catch((error)=>{
-    errorHandler(error,request,response);
+  }).catch((err)=>{
+    errorHandler(err,request,response);
   });
 }
 

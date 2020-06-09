@@ -1,4 +1,5 @@
-'Use strict';
+'use strict';
+
 const pg = require('pg');
 
 //Database Connection Setup

@@ -1,5 +1,6 @@
 'use strict';
 
+
 const superagent = require('superagent');
 const client = require('../util/db');
 
@@ -18,8 +19,8 @@ function trailsHandler(request,response) {
       return new Trails(trail);
     });
     response.send(trailsArray);
-  }).catch((error)=>{
-    errorHandler(error,request,response);
+  }).catch((err)=>{
+    errorHandler(err,request,response);
   });
 }
 

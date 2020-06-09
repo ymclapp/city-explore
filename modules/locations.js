@@ -16,7 +16,7 @@ function setLocationInCache(location) {
       console.log('Cache Location', result);
     })
     .catch(err => {
-      console.error('Failed to cache location',err);
+      console.err('Failed to cache location',err);
     })
 }
 
@@ -27,39 +27,57 @@ function getLocationFromCache (city) {
       WHERE search_query = $1 
       LIMIT 1
     `;
-  return client.query(SQL, [city]);
+  const parameters = [city];
+  return client.query(SQL, parameters)
+    .then(result => {
+      if(result.rowCount > 0) {
+        return (result.rows[0]);
+      }
+      else {
+        return null;
+      }
+    })
 }
 
-function getLocationFromAPI(city,request,response){
-  const url = 'https://us1.locationiq.com/v1/search.php';
-  superagent.get(url).query({
-    key: process.env.GEOCODE_API_KEY,
-    q: city,
-    format: 'json'
-  }).then((locIQresponse)=>{
-    let geoData = locIQresponse.body;
-    const location = new Location(city, geoData);
-    setLocationInCache(location)
-      .then(() => {
-        // console.log('Location has been cached', location);
-        response.send(location);
-      });
-  }).catch((error) => {
-    errorHandler(error, request, response);
-  });
-}
+
 
 function locationHandler(request, response) {
   const city = request.query.city;
   getLocationFromCache(city)
-    .then(result => {
-      let {rowCount, rows} = result;
-      if (rowCount > 0) {
-        response.send(rows[0]);
-      } else{
-        getLocationFromAPI(city, request, response);
+    .then(location => {
+      if (location) {
+        return location;
       }
+      else{
+        return getLocationFromAPI(city)
+      }
+    })
+    .then(location => {
+      response.send(location)
+    })
+    .catch(err => {
+      console.log(err);
+      errorHandler(err, request, response);
     });
+}
+
+function getLocationFromAPI(city){
+  const url = 'https://us1.locationiq.com/v1/search.php';
+  return superagent.get(url)
+    .query({
+      key: process.env.GEOCODE_API_KEY,
+      q: city,
+      format: 'json'
+    })
+    .then(locIQresponse => {
+      let geoData = locIQresponse.body;
+      const location = new Location(city, geoData);
+      return setLocationInCache(location)
+        .then(() => {
+        // console.log('Location has been cached', location);
+          return location;
+        });
+    })
 }
 
 function Location(city, geoData) {
@@ -69,17 +87,17 @@ function Location(city, geoData) {
   this.longitude = parseFloat(geoData[0].lon);
 }
 
-function errorHandler(error, request, response, next) {
-  console.log(error);
-  response.status(500).json({
-    error: true,
-    message: error.message
-  });
-}
+// function errorHandler(error, request, response, next) {
+//   console.log(error);
+//   response.status(500).json({
+//     error: true,
+//     message: error.message
+//   });
+// }
 
-function notFoundHandler(request, response) {
-  response.status(404).send('I could not find what you were asking for.')
-}
+// function notFoundHandler(request, response) {
+//   response.status(404).send('I could not find what you were asking for.')
+// }
 
 module.exports = locationHandler;
 
